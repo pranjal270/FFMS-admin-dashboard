@@ -1,13 +1,15 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
-const connectDB = async () => {
+const connectDB = async ()=>{    //writing the connectn logic inside function so as to call it when server starts
     try {
-        await mongoose.connect(process.env.MONGO_URI);
-
-        console.log('mongodb cinnected')
+        mongoose.connect(process.env.MONGO_URI)
+        console.log('mongodb connected successfully')
 
     } catch (error) {
-        console.error('error occured')
-        process.exit(1)
-    }
+        console.log('MongoDB connected failed:', error.message)
+
+        process.exit(1)   //process is a global object tat represents the running node program
+    } 
 }
+
+export default connectDB
