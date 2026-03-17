@@ -18,5 +18,4 @@ function generateRecoveryCodes() {
 
   return codes;
 }
-
-module.exports = generateRecoveryCodes;
+export default generateRecoveryCodes;
