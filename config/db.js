@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
 const connectDB = async ()=>{    //writing the connectn logic inside function so as to call it when server starts
     try {
@@ -9,7 +9,7 @@ const connectDB = async ()=>{    //writing the connectn logic inside function so
         console.log('MongoDB connected failed:', error.message)
 
         process.exit(1)   //process is a global object tat represents the running node program
-    }
+    } 
 }
 
-module.exports = connectDB
+export default connectDB

@@ -1,6 +1,8 @@
-const jwt = require('jsonwebtoken')
-import User from '../models/User'
-const bcrypt = require('bcryptjs') 
+import jwt from 'jsonwebtoken'
+import User from '../models/User.js'
+import bcrypt from 'bcryptjs'
+
+import generateRecoveryCodes from '../utils/generateRecoveryCodes.js'
 
 export const signup = async (req,res) => { 
     const { email, password } = req.body
@@ -15,9 +17,12 @@ export const signup = async (req,res) => {
     
     const hashedPassword = await bcrypt.hash( password, 10 )
 
+    const recoveryCodes = generateRecoveryCodes()
+
     const user = new User ({
         email,
-        password : hashedPassword
+        password : hashedPassword,
+        recoveryCodes
     })
 
     await user.save()
@@ -29,33 +34,56 @@ export const signup = async (req,res) => {
 }
 
 export const login = async (req,res) => { 
-    const {email , password } = req.body
+    try {
+        const {email , password } = req.body
 
-    const user = User.findOne({email})
+        const user = User.findOne({email})
 
-    if (!user) {
+        if (!user) {
         return res.status(40).json( {message: 'Invalid essentials, please try with correct credentials'} )
-    }
+        }
 
-    const isMatch = await bcrypt.compare( password, user.Password)
+        const isMatch = await bcrypt.compare( password, user.Password)
 
-    if (!isMatch) {
+        if (!isMatch) {
         return res.status(400).json({ message: 'Incorect password'})
-    }
+        }
 
-    if (password == existingUser.password) {
         let token = jwt.sign(
             { id : user._id, role: user.role }, process.env.JWT_SECRET , 
             { expiresIn: process.env.JWT_EXPIRES_IN }      //what happens when JWT EXPIRES?
         )
 
-    }
+        if (!user.recoveryCodesShown) {
+            user.recoveryCodesShown = true
+            
+            await user.save()
 
+            return res.json({
+                message: 'Login successful',
+                token,
+                recoveryCodes : user.recoveryCodes
+            })
+        }
+
+        return res.json({
+            message: 'Login successful',
+            token
+        })
+
+        
+    } catch (error){
+        console.error(error)
+
+        res.status(500).json({ 
+            message: 'Server error'
+        })
+    }
 }
 
 
 
-module.exports = {
+export default {
     signup,
     login
 }

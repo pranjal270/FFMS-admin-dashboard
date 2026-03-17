@@ -1,4 +1,4 @@
-const mongoose = require('mongoose') 
+import mongoose from 'mongoose'
 
 const recoveryCodeSchema = new mongoose.Schema({
     code: String,
@@ -36,4 +36,6 @@ const userSchema = new mongoose.Schema({
 
 })
 
-module.exports = mongoose.model('User', userSchema)
+const User = mongoose.model('User', userSchema)
+export default User
+// module.exports = mongoose.model('User', userSchema)

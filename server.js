@@ -1,19 +1,20 @@
-require('dotenv').config()
+import dotenv from 'dotenv'
+import express from 'express'
+import cors from 'cors'
+import connectDB from './config/db.js'
+import authRoutes from './routes/authRoutes.js'
 
-const express = require('express')
+dotenv.config()
+
 const app = express()
-const cors = require('cors')
-const connectDB = require('./config/db')
-
 
 app.use(cors())
 app.use(express.json())
 
-app.get('/', (req,res)=>{
-    res.send('My test route is running')
-
-    console.log('server chal gaya')
-})
+app.use('/api/auth', authRoutes)
 
 connectDB()
-app.listen(3000)
+
+app.listen(process.env.PORT, ()=>{
+    console.log(`Server running on port ${process.env.PORT}`)
+})
