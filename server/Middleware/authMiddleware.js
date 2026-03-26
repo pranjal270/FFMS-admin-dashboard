@@ -1,15 +1,16 @@
 import jwt from 'jsonwebtoken'
+import { config } from '../config/config'
 
 export const protect = (req,res,next) => {
         const authHeader = req.headers.authorization
 
-        if ( !authHeader || !authHeader.startsWith('bearer')) {  //the token that is sent , looks like this:Authorization: Bearer <token>
+        if ( !authHeader || !authHeader.startsWith('Bearer')) {  //the token that is sent , looks like this:Authorization: Bearer <token>
             res.status(401).json({message: 'No token found'})
         }
         const token = authHeader.split(' ')[1]
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const decoded = jwt.verify(token, config.jwtSecret)
         req.user = decoded
         next()
     } catch(error) {

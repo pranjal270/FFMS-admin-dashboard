@@ -1,8 +1,16 @@
 import jwt from 'jsonwebtoken'
 import User from '../models/User.js'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto';
+import RefreshToken from '../models/RefreshToken.js'
+import { 
+    generateAccessToken,
+    generateRefreshToken,
+    hashToken
+} from '../utils/generateTokens.js'
+import { config } from '../config/config.js'
 
-import generateRecoveryCodes from '../utils/generateRecoveryCodes.js'
+
 
 export const signup = async (req,res) => { 
     const { email, password } = req.body
@@ -15,9 +23,7 @@ export const signup = async (req,res) => {
         })
     } 
     
-    const hashedPassword = await bcrypt.hash( password, 10 )
-
-    const recoveryCodes = generateRecoveryCodes()
+    const hashedPassword = await bcrypt.hash( password, 10 ) //10 here is number of salt rounds
 
     const user = new User ({
         email,
@@ -37,38 +43,47 @@ export const login = async (req,res) => {
     try {
         const {email , password } = req.body
 
-        const user = User.findOne({email})
-
-        if (!user) {
-        return res.status(40).json( {message: 'Invalid essentials, please try with correct credentials'} )
-        }
-
-        const isMatch = await bcrypt.compare( password, user.Password)
-
-        if (!isMatch) {
-        return res.status(400).json({ message: 'Incorect password'})
-        }
-
-        let token = jwt.sign(
-            { id : user._id, role: user.role }, process.env.JWT_SECRET , 
-            { expiresIn: process.env.JWT_EXPIRES_IN }      //what happens when JWT EXPIRES?
-        )
-
-        if (!user.recoveryCodesShown) {
-            user.recoveryCodesShown = true
-            
-            await user.save()
-
-            return res.json({
-                message: 'Login successful',
-                token,
-                recoveryCodes : user.recoveryCodes
+        if ( !email || !password){
+            return res.status(400).json({
+                message : 'Email and password are required.'
             })
         }
 
+        const user = await User.findOne({email})
+
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.status(400).json( {message: 'Invalid credentials, please try with correct credentials'} )
+        }
+
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken();
+        const hashedToken = hashToken(refreshToken);
+
+        const expiresAt = new Date(
+            Date.now() +  7 * 24 * 60 * 60 * 1000  //replace with cnfig baadme
+        )
+
+        await RefreshToken.create({          //add refreshtoken in db
+            user: user._id,
+            token: hashedToken,
+            expiresAt
+        })
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly : true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            expires: expiresAt
+        })
+
         return res.json({
             message: 'Login successful',
-            token
+            accessToken,
+            user: {
+                id: user._id,
+                email: user.email,
+                role: user.role
+            }
         })
 
         
@@ -81,9 +96,24 @@ export const login = async (req,res) => {
     }
 }
 
+// export const generateRecoveryCodes = async (req,res)  =>{
+//     try {
+//         const userId = req.user.id  //from protext middleware
+
+//         const rawcodes = 
+
+//     }
+// }
+
+export const test = async (req,res) =>{
+    return res.json({message:'YAY route chal gaya uyuwwuwuw', user: req.user})
+}
+
+
 
 
 export default {
     signup,
-    login
+    login,
+    test
 }
