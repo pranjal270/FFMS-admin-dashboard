@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { config } from '../config/config'
+import { config } from '../config/config.js'
 
 export const protect = (req,res,next) => {
         const authHeader = req.headers.authorization
