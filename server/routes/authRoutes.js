@@ -2,7 +2,7 @@ import express from 'express'
 const router = express.Router()
 
 import { signup, login , test, generateRecoveryCodes, refreshAccessToken } from '../controllers/authControllers.js'
-import { protect, adminOnly } from '../middleware/authmiddleware.js'
+import { protect, adminOnly } from '../middleware/authMiddleware.js'
 
 
 router.post('/signup', signup)
