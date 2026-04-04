@@ -5,7 +5,7 @@ import { z } from "zod";
 dotenv.config();
 
 const envSchema = z.object({
-    PORT : z.string().default("3000"),
+    PORT : z.string().default("5000"),
     JWT_SECRET : z.string().min(1, "JWT secret is required."),
     JWT_EXPIRES_IN : z.string().default('15m'),
     MONGO_URI : z.string().min(1, "MONGO URI is required."),
