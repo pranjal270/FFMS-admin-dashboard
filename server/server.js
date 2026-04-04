@@ -22,6 +22,6 @@ app.use('/api/auth', authRoutes)
 
 connectDB()
 
-app.listen(process.env.PORT, ()=>{
+app.listen(config.port, ()=>{
     console.log(`Server running on port ${config.port}`)
 })
