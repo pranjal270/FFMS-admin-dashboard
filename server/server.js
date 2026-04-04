@@ -5,6 +5,7 @@ import connectDB from './database/db.js'
 import { config } from './config/config.js'
 import authRoutes from './routes/authRoutes.js'
 import cookieParser from 'cookie-parser';
+import healthRoutes from './routes/healthRoutes.js'
 dotenv.config()
 
 const app = express()
@@ -19,6 +20,8 @@ app.use(cors({
 app.use(express.json())
 
 app.use('/api/auth', authRoutes)
+
+app.use('/health', healthRoutes)
 
 connectDB()
 
