@@ -1,5 +1,5 @@
 import api from "./api/axios"
-import useAuth from "./context/AuthContext"
+import {useAuth }from "./context/AuthContext"
 import useAxiosInterceptor from "../hooks/useAxiosInterceptor"
 
 import React, { useEffect } from 'react'
