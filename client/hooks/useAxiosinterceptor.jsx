@@ -2,7 +2,7 @@ import useAuth from "../src/api/axios"
 import { useEffect } from "react"
 import api from "../src/api/axios"
 import { config } from "../../server/config/config"
-import { set } from "mongoose"
+
 
 let isRefreshing = false
 let refreshSubscribers = []
@@ -17,7 +17,7 @@ const onRefreshed = (newToken) => {
 }
 
 const useAxiosInterceptor = () => {
-    const { accessToken , setAccessToken } = useAuth
+    const { accessToken , setAccessToken } = useAuth()
     
     useEffect(()=> {
 

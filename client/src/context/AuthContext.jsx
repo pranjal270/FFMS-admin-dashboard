@@ -4,9 +4,10 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({children}) => {
     const [accessToken, setAccessToken] = useState(null)
+    const [isloading, setIsloading] = useState(true)
 
     return (
-        <AuthContext.Provider value={{ accessToken, setAccessToken}}>
+        <AuthContext.Provider value={{ accessToken, setAccessToken , isloading, setIsloading}}>
             {children}
         </AuthContext.Provider>
     )
