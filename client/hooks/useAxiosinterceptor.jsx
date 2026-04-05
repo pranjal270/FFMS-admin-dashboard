@@ -4,9 +4,21 @@ import api from "../src/api/axios"
 import { config } from "../../server/config/config"
 import { set } from "mongoose"
 
+let isRefreshing = false
+let refreshSubscribers = []
+
+const subscribeTokenRefresh = (callback) => {
+    refreshSubscribers.push(callback)
+}
+
+const onRefreshed = (newToken) => {
+    refreshSubscribers.forEach( (cb) => cb(newToken))
+    refreshSubscribers = []
+}
+
 const useAxiosInterceptor = () => {
     const { accessToken , setAccessToken } = useAuth
-
+    
     useEffect(()=> {
 
         const requestIntercept = api.interceptors.request.use(
@@ -29,19 +41,32 @@ const useAxiosInterceptor = () => {
                         !originalRequest._retry
                     ) {
                         originalRequest._retry = true
+
+                        if (isRefreshing) {
+                            return new Promise ((resolve)=> {
+                                subscribeTokenRefresh((newToken)=> {
+                                    originalRequest.headers.Authorization = `Bearer ${newToken}`
+                                    resolve(api(originalRequest))
+                                })
+                            })
+                        }
                         try {
                             const res = await api.post("/auth/refresh")
 
                             const newAccessToken = res.data.accessToken
 
                             setAccessToken(newAccessToken)
+                            onRefreshed(newAccessToken)
 
                             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
 
                             return api(originalRequest)
                         } catch (err) {
                             setAccessToken(null)
+                            window.location.href = '/login'
                             return Promise.reject(err)
+                        } finally {
+                            isRefreshing = false
                         }
                     }
              return Promise.reject(error)   
