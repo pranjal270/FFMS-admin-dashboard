@@ -13,8 +13,11 @@ const Dashboard = () => {
     }
   };
   return (
-    <div>Dashboard</div>
-    <button onClick={handleLogout}>Logout</button>
+    <div>
+      <h1>Dashboard</h1>
+      <button onClick={handleLogout}>Logout</button>
+      </div>
+    
   )
 }
 
