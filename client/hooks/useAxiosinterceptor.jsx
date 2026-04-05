@@ -1,4 +1,4 @@
-import {useAuth} from "../src/api/axios"
+import {useAuth} from "../src/context/AuthContext"
 import { useEffect } from "react"
 import api from "../src/api/axios"
 
