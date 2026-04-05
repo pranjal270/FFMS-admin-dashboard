@@ -1,7 +1,7 @@
 import useAuth from "../src/api/axios"
 import { useEffect } from "react"
 import api from "../src/api/axios"
-import { config } from "../../server/config/config"
+
 
 
 let isRefreshing = false
