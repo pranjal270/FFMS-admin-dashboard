@@ -229,6 +229,32 @@ export const verifyRecoveryCodes = async (req, res) => {
         })
     } 
 }
+
+export const logout = async () => {
+
+    try {
+        const refreshToken = req.cookies?.refreshToken  
+
+        if (!refreshToken) {
+            return res.status(204).json({ message : "No refresh token"})
+        }
+
+        await RefreshToken.findOneandDelete({token: refreshToken})
+
+        res.clearCookie( "refreshToken" , {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+        })  
+
+        return res.status(200).json({ message: "Logged out successfully" });
+    } catch (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ message: "Server error during logout" });
+  }
+};  
+
+
 export const test = async (req,res) =>{
     return res.json({message:'YAY route chal gaya uyuwwuwuw', user: req.user})
 }
