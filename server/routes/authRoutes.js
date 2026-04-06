@@ -8,6 +8,7 @@ import { protect, adminOnly } from '../Middleware/authMiddleware.js'
 router.post('/signup', signup)
 router.post('/login', login) 
 router.get('/generate-recovery-codes', protect , generateRecoveryCodes)
+router.post("/verify-recovery-code", verifyRecoveryCodes);
 router.post('/refresh', refreshAccessToken)
 router.post('/logout', logout)
 
