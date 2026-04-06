@@ -8,49 +8,10 @@ import {
     generateRefreshToken,
     hashToken
 } from '../utils/generateTokens.js'
+import ResetToken from "../models/passwordResetToken.js";
 import { config } from '../config/config.js'
 
 
-
-export const signup = async (req,res) => { 
-    try {
-        const { email, password } = req.body
-
-        if (!email || !password) {
-            return res.status(400).json({
-                message: "Email and password required."
-            })
-        }
-
-        const existingUser = await User.findOne({email})
-
-        if (existingUser) {
-            return res.status(404).json({
-                message: 'User already exists'
-            })
-        } 
-        
-        const hashedPassword = await bcrypt.hash( password, 10 ) //10 here is number of salt rounds
-
-        const user = new User ({
-            email,
-            password : hashedPassword,
-        })
-
-        await user.save()
-
-        res.status(201).json({
-            message: 'Your sign-up has been successful.'
-        })
-    } catch (error) {
-        console.error("Signup error", error.message)
-
-        res.status(500).json({
-            message: "Server Error  "
-        })
-    }
-
-}
 
 export const login = async (req,res) => { 
     try {
@@ -62,18 +23,18 @@ export const login = async (req,res) => {
             })
         }
 
-        const user = await User.findOne({email})
-
+        const user = await User.findOne({email : email.toLowerCase().trim() })
+ 
         if (!user || !(await bcrypt.compare(password, user.password))) {
         return res.status(400).json( {message: 'Invalid credentials, please try with correct credentials'} )
         }
 
         const accessToken = generateAccessToken(user);
-        const refreshToken = generateRefreshToken();
+        const refreshToken = generateRefreshToken();    
         const hashedToken = hashToken(refreshToken);
 
         const expiresAt = new Date(
-            Date.now() +  7 * 24 * 60 * 60 * 1000  //replace with cnfig baadme
+            Date.now() +  7 * 24 * 60 * 60 * 1000  //replace with cnfig baadme //aaj se 7 din baad 
         )
 
         await RefreshToken.create({          //add refreshtoken in db
@@ -83,7 +44,7 @@ export const login = async (req,res) => {
         })
 
         res.cookie("refreshToken", refreshToken, {
-            httpOnly : true,
+            httpOnly : true,  //js se directly access nahi ho paega
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             expires: expiresAt
@@ -95,15 +56,16 @@ export const login = async (req,res) => {
             user: {
                 id: user._id,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                tenantId: user.tenantId
             }
         })
 
         
     } catch (error){
-        console.error(error)
+        console.error("Login error:", error.message)
 
-        res.status(500).json({ 
+        return res.status(500).json({ 
             message: 'Server error'
         })
     }
@@ -137,7 +99,13 @@ export const refreshAccessToken = async (req, res) => {
         const accessToken = generateAccessToken(user)
 
         return res.status(200).json({
-            accessToken
+            accessToken,
+            user: {  // why sending agin user dtaa 
+                id: user._id, 
+                email: user.email,
+                role: user.role,
+                tenantId: user.tenantId,
+            }
         })
 
     } catch (error) {
@@ -153,6 +121,13 @@ export const generateRecoveryCodes = async (req,res)  =>{
     try {
         const userId = req.user.id  //from protect middleware we will get the user id
 
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
         const rawCodes = Array.from({ length :  8 }, ()=>{
             crypto.randomBytes(4).toString("hex")
         })
@@ -161,17 +136,17 @@ export const generateRecoveryCodes = async (req,res)  =>{
             ({ code: hashToken(code) , used : false}) //implicit return
         ) //hash the code to store in db
 
-        const user = await User.findById(userId)  //storw in db
         user.recoveryCodes = hashedCodes
+        // user.recoveryCodesShown = true;
         await user.save()
 
-        res.status(200).json({
+        return res.status(200).json({
             message: "Recovery Codes generated",
             recoveryCodes : rawCodes
         })
     } catch (error) {
         console.error("Generate recovery codes error:", error.message)
-        res.status(500).json({
+        return res.status(500).json({
             message: "Server error"
         })
     }
@@ -183,10 +158,10 @@ export const verifyRecoveryCodes = async (req, res) => {
 
         if ( !email || !code ) {
             return res.status(400).json({
-                messgae: "Email and Code are     required."
+                messgae: "Email and Code are required."
             })
         }
-        const user = await User.findOne({email})
+        const user = await User.findOne({email : email.toLowerCase().trim()})
 
         if (!user || !user.recoveryCodes?.length) {
             return res.status(400).json({
@@ -196,7 +171,7 @@ export const verifyRecoveryCodes = async (req, res) => {
 
         const hashedInput = hashToken(code)
         const index = user.recoveryCodes.findIndex(
-            (item) => item.code === hashedInput
+            (item) => item.code === hashedInput && item.used === false
         )
 
         if (index === -1){
@@ -206,7 +181,6 @@ export const verifyRecoveryCodes = async (req, res) => {
         }
 
         user.recoveryCodes.splice(index , 1) //removed used recovery code
-
         await user.save()
 
         const resetToken = crypto.randomBytes(32).toString("hex")
@@ -215,19 +189,46 @@ export const verifyRecoveryCodes = async (req, res) => {
         await ResetToken.create({
                 user: user._id,
                 token: hashedResetToken,
-                expiresAt: Date.now() + 15 * 60 * 1000
+                expiresAt: Date.now() + 15 * 60 * 1000 //15 min
         })
 
         return  res.status(200).json({
-            message: "Recovery codes generated",
+            message: "Recovery code verified successfully",
             resetToken
         })    
     } catch (error) {
-        console.error(error.message)
+        console.error("Verify recovery code error:", error.message);
         return res.status(500).json({
             message: "Server error"
         })
     } 
+}
+
+export const me = async ( req, res) =>{ 
+    try {
+        const user = await User.findById(req.user.id , { password:0})
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+             });
+        }
+
+        return res.status(200).json({
+            user: {
+                id: user._id,
+                email: user.email,
+                role: user.role,
+                tenantId: user.tenantId,
+            },
+        });
+    }  catch (error) {
+            console.error("Me route error:", error.message);
+
+            return res.status(500).json({
+                message: "Server error",
+            });
+        }
 }
 
 export const logout = async () => {
@@ -235,11 +236,11 @@ export const logout = async () => {
     try {
         const refreshToken = req.cookies?.refreshToken  
 
-        if (!refreshToken) {
-            return res.status(204).json({ message : "No refresh token"})
-        }
-
-        await RefreshToken.findOneandDelete({token: refreshToken})
+        if (refreshToken) {
+            const hashedRefreshToken = hashToken(refreshToken)
+            
+            await RefreshToken.findOneandDelete({token: hashedRefreshToken})
+        }   
 
         res.clearCookie( "refreshToken" , {
             httpOnly: true,
@@ -259,6 +260,45 @@ export const test = async (req,res) =>{
     return res.json({message:'YAY route chal gaya uyuwwuwuw', user: req.user})
 }
 
+// export const signup = async (req,res) => { 
+//     try {
+//         const { email, password } = req.body
+
+//         if (!email || !password) {
+//             return res.status(400).json({
+//                 message: "Email and password required."
+//             })
+//         }
+
+//         const existingUser = await User.findOne({email})
+
+//         if (existingUser) {
+//             return res.status(404).json({
+//                 message: 'User already exists'
+//             })
+//         } 
+        
+//         const hashedPassword = await bcrypt.hash( password, 10 ) //10 here is number of salt rounds
+
+//         const user = new User ({
+//             email,
+//             password : hashedPassword,
+//         })
+
+//         await user.save()
+
+//         res.status(201).json({
+//             message: 'Your sign-up has been successful.'
+//         })
+//     } catch (error) {
+//         console.error("Signup error", error.message)
+
+//         res.status(500).json({
+//             message: "Server Error  "
+//         })
+//     }
+
+// }
 export default {
     signup,
     login,
