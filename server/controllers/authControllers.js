@@ -151,11 +151,17 @@ export const refreshAccessToken = async (req, res) => {
 
 export const generateRecoveryCodes = async (req,res)  =>{
     try {
-        const userId = req.user.id  //from protect middleware we will get the user id
+        const userId = req.user?.id  //from protect middleware we will get the user id
+        if (!userId) {
+      return res.status(401).json({
+        message: "Invalid or expired token"
+      })
+    }
 
-        const rawCodes = Array.from({ length :  8 }, ()=>{
+
+        const rawCodes = Array.from({ length :  8 }, ()=>
             crypto.randomBytes(4).toString("hex")
-        })
+        )
 
         const hashedCodes = rawCodes.map((code) => 
             ({ code: hashToken(code) , used : false}) //implicit return
@@ -230,7 +236,7 @@ export const verifyRecoveryCodes = async (req, res) => {
     } 
 }
 
-export const logout = async () => {
+export const logout = async (req,res) => {
 
     try {
         const refreshToken = req.cookies?.refreshToken  
