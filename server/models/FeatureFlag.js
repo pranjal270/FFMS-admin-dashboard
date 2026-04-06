@@ -2,17 +2,29 @@ import mongoose from "mongoose";
 
 const featureFlagSchema = new mongoose.Schema(
   {
+    tenantId: {
+      type: String,
+      required: true,
+      trim: true,
+      index: true,
+    }, 
+
+    flagKey: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     name: {
       type: String,
       required: true,
       trim: true,
     },
 
-    projectId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Project",
-      required: true,
-      index: true,
+    description: {
+      type: String,
+      default: "",
+      trim: true,
     },
 
     enabled: {
@@ -20,56 +32,26 @@ const featureFlagSchema = new mongoose.Schema(
       default: false,
     },
 
-    rollout: {
+    rolloutPercentage: {
       type: Number,
       default: 100,
       min: 0,
       max: 100,
-    },
-
-    targetType: {
-      type: String,
-      enum: ["all", "user", "role"],
-      default: "all",
-    },
-
-    targetUsers: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-
-    targetRoles: [
-      {
-        type: String,
-        enum: ["admin", "customer"],
-      },
-    ],
-
-    description: {
-      type: String,
-    },
-
-    isArchived: {
+    }, 
+    isDeleted: {
       type: Boolean,
       default: false,
-    },
-
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-
-    updatedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
+      index: true,
+    } 
   },
   { timestamps: true }
 );
 
-
-featureFlagSchema.index({ name: 1, projectId: 1 }, { unique: true });
+featureFlagSchema.index(
+  { tenantId: 1, flagKey: 1},
+  { unique: true,
+  partialFilterExpression : { isDeleted : false},
+  } 
+)
 
 export default mongoose.model("FeatureFlag", featureFlagSchema);
