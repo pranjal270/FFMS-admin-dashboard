@@ -5,12 +5,12 @@ export const protect = (req,res,next) => {
         const authHeader = req.headers.authorization
 
         if ( !authHeader || !authHeader.startsWith('Bearer')) {  //the token that is sent , looks like this:Authorization: Bearer <token>
-            res.status(401).json({message: 'No token found'})
+            return res.status(401).json({message: 'No token found'})
         }
-        const token = authHeader.split(' ')[1]
+        const accToken = authHeader.split(' ')[1]
 
     try {
-        const decoded = jwt.verify(token, config.jwtSecret)
+        const decoded = jwt.verify(accToken, config.jwtSecret)
         req.user = decoded
         next()
     } catch(error) {
@@ -19,8 +19,10 @@ export const protect = (req,res,next) => {
 }
 
 export const adminOnly = (req,res,next) =>{
-    if (req.user.role !== admin){
-        res.status(403).json({ message : 'Access Denied'})
+    if (req.user.role !== "admin"){
+        res.status(403).json({ message : 'Access Denied'})   
     }
+    next(); 
 }
 
+//may feel redundant but  code becomes clearer route intent becomes obvious

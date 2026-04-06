@@ -5,7 +5,8 @@ import { config } from '../config/config.js'
 export const generateAccessToken = (user) => {
     return jwt.sign({
         id: user._id,
-        role: user.role,
+        role: user.role,  //we keep role so that it is more clear that it is a admin only route 
+        tenantId: user.tenantId,
         },
         config.jwtSecret,
         {
