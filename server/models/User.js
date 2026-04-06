@@ -13,7 +13,9 @@ const userSchema = new mongoose.Schema({
     email: {
         type:String,
         required: true,
-        unique: true
+        unique: true,
+        trim: true, //remove ectrac spaces
+        lowercase: true 
     } ,
 
     password: {
@@ -21,10 +23,16 @@ const userSchema = new mongoose.Schema({
         required: true
     },
 
+    tenantId: {
+        type: String ,
+        trim : true,
+        required: true
+    },
+
     role: {
         type:String,
-        enum: ['admin', 'customer'],
-        default: 'customer'
+        enum: ['admin'],
+        default: 'admin'
     },
 
     recoveryCodes: [recoveryCodeSchema],
