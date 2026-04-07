@@ -5,8 +5,10 @@ import connectDB from './database/db.js'
 import { config } from './config/config.js'
 import authRoutes from './routes/authRoutes.js'
 import flagRoutes from "./routes/flagRoutes.js"
+import tenantFlagRoutes from "./routes/tenantFlagRoutes.js"
 import cookieParser from 'cookie-parser';
 import healthRoutes from './routes/healthRoutes.js'
+import { tenantAuth } from './middleware/tenantAuth.js'
 dotenv.config()
 
 const app = express()
@@ -23,6 +25,7 @@ app.use(express.json())
 app.use('/api/auth', authRoutes)
 app.use("/api/flags", flagRoutes)
 app.use('/health', healthRoutes)
+app.use("/api/flags", tenantAuth, tenantFlagRoutes)
 
 connectDB()
 
