@@ -34,10 +34,10 @@ const useAxiosInterceptor = () => {
         const responseIntercept = api.interceptors.response.use(
             (reponse) => reponse,
              async (error) => {
-                originalRequest = error.config
+                const originalRequest = error.config
 
                 if (
-                        error.response.status === 401 &&
+                        error.response?.status === 401 &&
                         !originalRequest._retry
                     ) {
                         originalRequest._retry = true
@@ -50,6 +50,7 @@ const useAxiosInterceptor = () => {
                                 })
                             })
                         }
+                        isRefreshing=true
                         try {
                             const res = await api.post("/auth/refresh")
 
