@@ -11,6 +11,7 @@ import healthRoutes from './routes/healthRoutes.js'
 import { tenantAuth } from './middleware/tenantAuth.js'
 dotenv.config()
 
+
 const app = express()
 
 app.use(cookieParser());
@@ -23,12 +24,17 @@ app.use(cors({
 app.use(express.json())
 
 app.use('/api/auth', authRoutes)
-app.use("/api/flags", flagRoutes)
+// app.use("/api/flags", flagRoutes)
 app.use('/health', healthRoutes)
-app.use("/api/flags", tenantAuth, tenantFlagRoutes)
+app.use("/api/flags", tenantFlagRoutes)
+app.get("/check", (req, res) => {
+  res.send("FFMS RUNNING ✅");
+});
+
 
 connectDB()
 
 app.listen(config.port, ()=>{
     console.log(`Server running on port ${config.port}`)
+
 })
