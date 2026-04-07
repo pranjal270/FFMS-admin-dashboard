@@ -1,12 +1,12 @@
 import { string } from "zod";
-import FeatureFlag from "../models/FeatureFlag";
+import FeatureFlag from "../models/FeatureFlag.js";
 
 //listflags
 
-export const listflags = async (req, res) => {
+export const listFlags = async (req, res) => {
     try {
         const flags = await FeatureFlag.find({
-            tenantId : req.user.tenantId,
+            tenantId : req.user.tenantId, //identify from middleware 
             isDeleted: false
         }).sort({ createdAt : -1})
 

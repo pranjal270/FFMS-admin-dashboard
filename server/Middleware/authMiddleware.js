@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import { config } from '../config/config.js'
 
 export const protect = (req,res,next) => {
-        const authHeader = req.headers.authorization
+        const authHeader = req.headers.authorization //headers m kha se ACT? fe bhejega 
 
         if ( !authHeader || !authHeader.startsWith('Bearer')) {  //the token that is sent , looks like this:Authorization: Bearer <token>
             return res.status(401).json({message: 'No token found'})

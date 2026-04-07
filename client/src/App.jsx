@@ -6,29 +6,14 @@ import { Route, Routes } from "react-router-dom"
 import Login from "./pages/Login"
 import Home from "./pages/Home"
 import Dashboard from "./pages/Dashboard"
+import FlagDetailPage from "./pages/FlagDetailPage"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 const App = () => {
-  const { setAccessToken,setIsloading } = useAuth()
+  const { setAccessToken,setIsloading , setUser} = useAuth()
 
   useAxiosInterceptor()
-
-  useEffect(()=> {
-    const initAuth = async () => {
-      try {
-        const res = await api.post("/auth/refresh")
-        const newAccessToken = res.data.accessToken
-        setAccessToken(newAccessToken)
-        setIsloading(false)
-
-      } catch (err) {
-        setAccessToken(null)
-      }finally{
-        setIsloading(false)
-      }
-    }
-    initAuth()
-  }, [setAccessToken,setIsloading]) //only runs when app reloads not when ACT changes 
+ 
 
   return (
     <Routes>
@@ -38,6 +23,15 @@ const App = () => {
         <ProtectedRoute>
           <Dashboard />
         </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/flags/:flagId"
+        element={
+          <ProtectedRoute>
+            <FlagDetailPage />
+          </ProtectedRoute>
         }
       />
     </Routes>
