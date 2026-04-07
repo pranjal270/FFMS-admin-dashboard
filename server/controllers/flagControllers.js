@@ -46,7 +46,8 @@ export const createFlag = async ( req, res) => {
         }
 
         const newFlag = await FeatureFlag.create({
-            flagKey: flagkey.trim(),
+            tenantId: req.user.tenantId,
+            flagKey: flagKey.trim(),
             name: name.trim(),
             description: description ? description.trim() : "",
             rolloutPercentage: 

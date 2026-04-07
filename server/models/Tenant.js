@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import crypto from "crypto"
 
 
 const tenantSchema = new mongoose.Schema(
@@ -22,6 +23,7 @@ const tenantSchema = new mongoose.Schema(
             unique: true,
             trim: true,
             select: false,
+            default: () => crypto.randomBytes(32).toString("hex")
         },
     },
     { timestamps: true}

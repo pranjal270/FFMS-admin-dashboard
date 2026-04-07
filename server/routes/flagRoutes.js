@@ -5,7 +5,7 @@ import {
     updateFlag,
     toggleFlag,
     softDeleteFlag
-} from "../controllers/flagController.js"
+} from "../controllers/flagControllers.js"
 
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
