@@ -133,9 +133,9 @@ export const generateRecoveryCodes = async (req,res)  =>{
             });
         }
 
-        const rawCodes = Array.from({ length :  8 }, ()=>{
+        const rawCodes = Array.from({ length :  8 }, ()=>
             crypto.randomBytes(4).toString("hex")
-        })
+        )
 
         const hashedCodes = rawCodes.map((code) => 
             ({ code: hashToken(code) , used : false}) //implicit return
@@ -244,7 +244,7 @@ export const logout = async (req, res) => {
         if (refreshToken) {
             const hashedRefreshToken = hashToken(refreshToken)
             
-            await RefreshToken.findOneandDelete({token: hashedRefreshToken})
+            await RefreshToken.findOneAndDelete({token: hashedRefreshToken})
         }   
 
         res.clearCookie( "refreshToken" , {
@@ -305,7 +305,6 @@ export const test = async (req,res) =>{
 
 // }
 export default {
-    signup,
     login,
     test
 }

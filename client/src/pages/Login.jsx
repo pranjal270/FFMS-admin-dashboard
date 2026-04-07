@@ -4,13 +4,13 @@ import { useNavigate } from "react-router-dom"
 import api from "../api/axios"
 
 const Login = () => {
-  const { setAccessToken } = useAuth()
+  const { loginUser } = useAuth()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("") //error msg ui 
+  const [loading, setLoading] = useState(false) //buttn loading state 
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -23,7 +23,8 @@ const Login = () => {
         password,
       })
 
-      setAccessToken(res.data.accessToken)
+      loginUser(res.data.accessToken, res.data.user) //both data stored in context
+
       navigate("/dashboard")
     } catch (err) {
       setError(err.response?.data?.message || "Login failed")

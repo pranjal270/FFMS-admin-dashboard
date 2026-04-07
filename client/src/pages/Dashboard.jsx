@@ -1,19 +1,30 @@
-import React, { useState } from "react"
+import React, { useState , useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import api from "../api/axios"
 
 const Dashboard = () => {
   const navigate = useNavigate()
-  const { setAccessToken } = useAuth()
+  const { user , logoutUser } = useAuth()
 
   const [activePanel, setActivePanel] = useState("overview")
   const [recoveryCodes, setRecoveryCodes] = useState([])
   const [recoveryError, setRecoveryError] = useState("")
   const [isGeneratingCodes, setIsGeneratingCodes] = useState(false)
-  const [showAppsMenu, setShowAppsMenu] = useState(false)
-  const [selectedApp, setSelectedApp] = useState("Zayka")
 
+  const [flags, setFlags]  = useState([])
+  const [flagsLoading, setFlagsLoading] = useState(false)
+  const [flagsError, setFlagsError] = useState("")
+
+  const [showCreateCard, setShowCreateCard] = useState(false)
+  const [createLoading, setCreateLoading] = useState(false)
+
+  const [createForm, setCreateForm] = useState({
+    flagkey : "",
+    name : "",
+    description:"",
+    rolloutPercentage : 100
+  })
 
   const handleLogout = async () => {
     try {
@@ -21,10 +32,34 @@ const Dashboard = () => {
     } catch (err) {
       console.error("Logout error", err)
     } finally {
-      setAccessToken(null)
+      logoutUser()
       navigate("/login")
     }
   }
+
+  const fetchFlags = async () => {
+    try {
+      setFlagsLoading(true)
+      setFlagsError("")
+
+      const res = await api.get('/flags')
+      setFlags(res.data.flags || [])
+
+    } catch (error) {
+      console.error("Fetch flags error", err);
+      setFlagsError(err.response?.data?.message || "Failed to fetch flags");
+    } finally {
+      setFlagsLoading(false)
+    }
+  }   
+
+  useEffect(() => {
+    if ( activePanel === 'flags') {
+      fetchFlags()
+    }
+  }, [activePanel])
+  
+  
 
   const handleGenerateCodes = async () => {
     setIsGeneratingCodes(true)
@@ -40,12 +75,47 @@ const Dashboard = () => {
     }
   }
 
-  return (
+  const handleCreateFlag = async () => {
+    try {
+      setCreateLoading(true)
+      setFlagsError("")
+
+      const res =  await api.post("/flags", {
+        flagkey: createForm.flagkey,
+        name: createForm.name,
+        description: createForm.description,
+        rolloutPercentage: Number(createForm.rolloutPercentage)
+      })
+
+      setCreateForm({
+        flagKey: "",
+        name: "",
+        description: "",
+        rolloutPercentage: 100,
+      });
+
+      setShowCreateCard(false);
+      await fetchFlags();
+
+      // Naya flag create hote hi uski detail page pe bhej do
+      if (res.data?.flag?._id) {
+        navigate(`/dashboard/flags/${res.data.flag._id}`);
+      }
+
+    } catch (err) {
+      setFlagsError(err.response?.data?.message || "Failed to create flag");
+    } finally {
+      setCreateLoading(false);
+    }
+  }
+
+
+return (
     <section className="min-h-screen bg-[#05050d] text-white lg:grid lg:grid-cols-[260px_1fr]">
       <aside className="flex flex-col border-b border-white/10 bg-white/5 p-4 backdrop-blur-2xl lg:min-h-screen lg:border-b-0 lg:border-r">
         <div className="mb-8 flex items-center gap-3.5">
           <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 font-extrabold shadow-[0_0_28px_rgba(124,58,237,0.38)]">
-            
+            F
           </div>
           <div>
             <strong className="block text-base tracking-[-0.02em]">FlagIt</strong>
@@ -75,7 +145,7 @@ const Dashboard = () => {
                 : "text-white/60 hover:bg-white/5 hover:text-white"
             }`}
           >
-            Zayka Flags
+            Tenant Flags
           </button>
 
           <button
@@ -93,9 +163,9 @@ const Dashboard = () => {
 
         <div className="mt-auto grid gap-4 pt-8">
           <div className="rounded-2xl bg-white/5 p-4">
-            <strong>admin@example.com</strong>
+            <strong>{user?.email}</strong>
             <span className="mt-1 block text-xs text-white/55">
-              Authenticated administrator
+              Tenant: {user?.tenantId}
             </span>
           </div>
 
@@ -111,49 +181,28 @@ const Dashboard = () => {
 
       <main className="p-4 md:p-7">
         <header className="rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur-2xl">
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-               onClick={() => setShowAppsMenu((prev) => !prev)}
-              className="grid h-11 w-11 place-items-center gap-[3px] rounded-2xl bg-white/5"
-            >
-              <span className="h-0.5 w-4 rounded-full bg-white" />
-              <span className="h-0.5 w-4 rounded-full bg-white" />
-              <span className="h-0.5 w-4 rounded-full bg-white" />
-            </button>
-
+          <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-violet-200/85">
                 Admin workspace
               </p>
               <h1 className="mt-1 text-xl font-semibold tracking-[-0.02em]">
-                 Workspace: {selectedApp}
+                Workspace: {user?.tenantId}
               </h1>
-              {showAppsMenu && (
-  <div className="mt-4 grid w-full max-w-[420px] gap-3 rounded-[24px] border border-white/10 bg-white/5 p-4 backdrop-blur-2xl">
-    {["Zayka", "Shopping", "Payments", "Offers"].map((app) => (
-      <button
-        key={app}
-        type="button"
-        onClick={() => {
-          setSelectedApp(app)
-          setShowAppsMenu(false)
-        }}
-        className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left text-white hover:bg-white/[0.08]"
-      >
-        <strong className="text-sm font-semibold">{app}</strong>
-        <span className="mt-1 block text-xs text-white/55">
-          {app === "Zayka"
-            ? "Manage flags, rollout rules & experiments"
-            : "Feature flag support coming soon"}
-        </span>
-      </button>
-    ))}
-  </div>
-)}
-
-              <p className="mt-2 text-white/60">Feature flags active here</p>
+              <p className="mt-2 text-white/60">
+                Feature flags active for this tenant only
+              </p>
             </div>
+
+            {activePanel === "flags" && (
+              <button
+                type="button"
+                onClick={() => setShowCreateCard((prev) => !prev)}
+                className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 px-5 py-3 font-semibold text-white shadow-[0_0_28px_rgba(124,58,237,0.38)] transition hover:-translate-y-0.5"
+              >
+                {showCreateCard ? "Close" : "Add Flag"}
+              </button>
+            )}
           </div>
         </header>
 
@@ -164,52 +213,41 @@ const Dashboard = () => {
                 Session
               </p>
               <h2 className="mt-2 text-xl font-bold tracking-[-0.03em]">
-                 You are managing: {selectedApp}
+                You are managing tenant: {user?.tenantId}
               </h2>
-                  <p className="mt-2 text-white/60">
-      All changes will affect this environment
-    </p>
+              <p className="mt-2 text-white/60">
+                All dashboard operations are automatically scoped to this tenant.
+              </p>
             </article>
 
             <article className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl">
               <p className="text-xs uppercase tracking-[0.18em] text-violet-200/85">
-                Applications
+                Flow
               </p>
               <h3 className="mt-2 text-lg font-semibold tracking-[-0.03em]">
-                 Select an application
+                How this dashboard works
               </h3>
-              <p className="mt-2 text-white/60">
-  Manage feature flags per application
-</p>
-
-              <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <button className="rounded-3xl border border-violet-500/35 bg-violet-500/20 p-4 text-left text-white">
-                  <strong className="text-base">Zayka</strong>
+              <div className="mt-5 grid gap-4 md:grid-cols-3">
+                <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+                  <strong className="text-base">1. Login</strong>
                   <span className="mt-1 block text-sm text-white/55">
-                    Feature flags active here
+                    Admin logs in and receives tenant-aware JWT.
                   </span>
-                </button>
+                </div>
 
-                <button className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 text-left text-white">
-                  <strong className="text-base">Shopping</strong>
+                <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+                  <strong className="text-base">2. Manage Flags</strong>
                   <span className="mt-1 block text-sm text-white/55">
-                    Coming soon
+                    Only this tenant's flags are listed here.
                   </span>
-                </button>
+                </div>
 
-                <button className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 text-left text-white">
-                  <strong className="text-base">Payments</strong>
+                <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+                  <strong className="text-base">3. Open Detail</strong>
                   <span className="mt-1 block text-sm text-white/55">
-                    Coming soon
+                    Click any flag to open dedicated edit page.
                   </span>
-                </button>
-
-                <button className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 text-left text-white">
-                  <strong className="text-base">Offers</strong>
-                  <span className="mt-1 block text-sm text-white/55">
-                    Coming soon
-                  </span>
-                </button>
+                </div>
               </div>
             </article>
           </section>
@@ -217,30 +255,151 @@ const Dashboard = () => {
 
         {activePanel === "flags" && (
           <section className="mt-5 rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl">
+            {showCreateCard && (
+              <div className="mb-6 grid gap-4 rounded-[24px] border border-violet-500/20 bg-white/[0.04] p-5">
+                <h3 className="text-lg font-semibold">Create New Flag</h3>
+
+                <input
+                  value={createForm.flagKey}
+                  onChange={(e) =>
+                    setCreateForm((prev) => ({ ...prev, flagKey: e.target.value }))
+                  }
+                  placeholder="flag_key"
+                  className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none"
+                />
+
+                <input
+                  value={createForm.name}
+                  onChange={(e) =>
+                    setCreateForm((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="Feature name"
+                  className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none"
+                />
+
+                <input
+                  value={createForm.description}
+                  onChange={(e) =>
+                    setCreateForm((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  placeholder="Description"
+                  className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none"
+                />
+
+                <input
+                  type="number"
+                  value={createForm.rolloutPercentage}
+                  onChange={(e) =>
+                    setCreateForm((prev) => ({
+                      ...prev,
+                      rolloutPercentage: e.target.value,
+                    }))
+                  }
+                  placeholder="Rollout percentage"
+                  className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none"
+                />
+
+                <button
+                  type="button"
+                  onClick={handleCreateFlag}
+                  disabled={createLoading}
+                  className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 px-5 py-3 font-semibold text-white shadow-[0_0_28px_rgba(124,58,237,0.38)] transition hover:-translate-y-0.5 disabled:opacity-70"
+                >
+                  {createLoading ? "Creating..." : "Create Flag"}
+                </button>
+              </div>
+            )}
+
+            {flagsError && (
+              <p className="mb-4 rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {flagsError}
+              </p>
+            )}
+
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-violet-200/85">
                   Feature workspace
                 </p>
                 <h2 className="mt-2 text-xl font-bold tracking-[-0.03em]">
-                  Zayka Flags
+                  {user?.tenantId} Flags
                 </h2>
               </div>
-
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 px-5 py-3 font-semibold text-white shadow-[0_0_28px_rgba(124,58,237,0.38)] transition hover:-translate-y-0.5"
-              >
-                Add Flag
-              </button>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-6">
-              <h3 className="text-lg font-semibold">No feature flags added yet</h3>
-              <p className="mt-1 text-sm text-white/60">
-                Zayka flag management will appear here.
-              </p>
+            {flagsLoading ? (
+              <div className="mt-5 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-6">
+                <p className="text-sm text-white/60">Loading flags...</p>
+              </div>
+            ) : flags.length === 0 ? (
+              <div className="mt-5 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-6">
+                <h3 className="text-lg font-semibold">No feature flags added yet</h3>
+                <p className="mt-1 text-sm text-white/60">
+                  Your tenant flag management will appear here.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-5 grid gap-4">
+                {flags.map((flag) => (
+                <div
+                    key={flag._id}
+                    className="flex items-center justify-between rounded-[24px] border border-white/10 bg-white/[0.04] p-5 transition hover:border-violet-500/35 hover:bg-white/[0.06]"
+                  >
+                <button
+                  type="button"
+                  onClick={() => navigate(`/dashboard/flags/${flag._id}`)}
+                  className="flex-1 text-left"
+                >
+                  <strong className="text-base">{flag.name}</strong>
+                  <span className="mt-1 block text-sm text-white/55">
+                    {flag.flagKey}
+                  </span>
+                  <span className="mt-1 block text-xs text-white/40">
+                    Rollout: {flag.rolloutPercentage}% | Status:{" "}
+                    {flag.isEnabled ? "Enabled" : "Disabled"}
+                  </span>
+                </button>
+
+                <div className="ml-4 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+
+                      try {
+                        await api.patch(`/flags/${flag._id}/toggle`);
+                        fetchFlags();
+                      } catch (err) {
+                        setFlagsError(
+                          err.response?.data?.message || "Failed to toggle flag"
+                        );
+                      }
+                    }}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      flag.isEnabled
+                        ? "border border-emerald-400/20 bg-emerald-500/20 text-emerald-300"
+                        : "border border-white/10 bg-white/10 text-white/70"
+                    }`}
+                  >
+                    {flag.isEnabled ? "ON" : "OFF"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/dashboard/flags/${flag._id}`)}
+                    className="rounded-full border border-violet-500/30 bg-violet-500/15 px-4 py-2 text-sm text-violet-100"
+                  >
+                    Open
+                  </button>
+                </div>
+              </div>
+              ))}
             </div>
+
+            )}
           </section>
         )}
 
@@ -300,7 +459,8 @@ const Dashboard = () => {
         )}
       </main>
     </section>
-  )
+  );
 }
 
-export default Dashboard
+
+export default Dashboard;
