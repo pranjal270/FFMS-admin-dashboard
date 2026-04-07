@@ -4,6 +4,7 @@ import cors from 'cors'
 import connectDB from './database/db.js'
 import { config } from './config/config.js'
 import authRoutes from './routes/authRoutes.js'
+import flagRoutes from "./routes/flagRoutes.js"
 import cookieParser from 'cookie-parser';
 import healthRoutes from './routes/healthRoutes.js'
 dotenv.config()
@@ -20,7 +21,7 @@ app.use(cors({
 app.use(express.json())
 
 app.use('/api/auth', authRoutes)
-
+app.use("/api/flags", flagRoutes)
 app.use('/health', healthRoutes)
 
 connectDB()
