@@ -73,7 +73,7 @@ export const createFlag = async ( req, res) => {
 
 export const updateFlag = async ( req , res) => {
     try {
-        const flagId = req.params
+        const { flagId } = req.params
         const { name , description, rolloutPercentage} = req.body
 
         const flag = await FeatureFlag.findOne({
@@ -117,9 +117,9 @@ export const updateFlag = async ( req , res) => {
 
 export const toggleFlag = async (req, res) => {
     try {
-        const flagId = req.params
+        const {flagId }= req.params
 
-        const flag = FeatureFlag.findOne({
+        const flag = await FeatureFlag.findOne({
             tenantId : req.user.tenantId,
             _id: flagId,
             isDeleted: false
@@ -150,7 +150,7 @@ export const toggleFlag = async (req, res) => {
 
 export const softDeleteFlag = async (req, res) => {
     try {
-        const flagId = req.params
+        const { flagId }= req.params
 
         const flag = await FeatureFlag.findOne({
             _id: flagId,
