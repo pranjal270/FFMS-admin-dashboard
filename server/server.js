@@ -24,9 +24,9 @@ app.use(cors({
 app.use(express.json())
 
 app.use('/api/auth', authRoutes)
-// app.use("/api/flags", flagRoutes)
+app.use("/api/flagit/flags", flagRoutes) //admin
 app.use('/health', healthRoutes)
-app.use("/api/flags", tenantFlagRoutes)
+app.use("/api/flags", tenantFlagRoutes) //tenant
 app.get("/check", (req, res) => {
   res.send("FFMS RUNNING ✅");
 });

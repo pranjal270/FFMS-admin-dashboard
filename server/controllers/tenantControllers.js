@@ -4,8 +4,8 @@ export const getTenantFlags = async (req, res) => {
   try {
     // const tenantId = req.user?.tenantId;   // ✅ FIX
    console.log("🔥 CONTROLLER HIT 🔥");
-   const tenantId = "zayka-001"; // hardcode
-console.log("TENANT ID:", tenantId);
+   const tenantId = req.tenant?.tenantId;
+    console.log("TENANT ID:", tenantId);
 
     if (!tenantId) {
       return res.status(400).json({ message: "Tenant ID missing" });
@@ -16,7 +16,7 @@ console.log("TENANT ID:", tenantId);
       isDeleted: false
     })
       .select("flagKey name description isEnabled rolloutPercentage updatedAt") // ✅ FIX spelling
-      .sort({ updatedAt: -1 });
+      .sort({ updatedAt: -1 });  
 
     return res.status(200).json({
       tenantId,

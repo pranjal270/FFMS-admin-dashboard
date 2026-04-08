@@ -27,7 +27,7 @@ const featureFlagSchema = new mongoose.Schema(
       trim: true,
     },
 
-    enabled: {
+    isEnabled: {
       type: Boolean,
       default: false,
     },
