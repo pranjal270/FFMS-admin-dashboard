@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import api from "../api/axios";
 
 const AuthContext = createContext(null);
 
@@ -13,7 +14,7 @@ export const AuthProvider = ({children}) => {
         const res = await api.post("/auth/refresh")
         const newAccessToken = res.data.accessToken
         setAccessToken(newAccessToken)
-        setUser(res.data.user)
+        setUser(res.data.user) 
         setIsloading(false)
 
       } catch (err) {
@@ -31,7 +32,7 @@ export const AuthProvider = ({children}) => {
         setUser(userData)
     }   
 
-    const logoutUser = () =>{
+    const logoutUser = () => {
         setAccessToken(null)
         setUser(null)
     }

@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 const FlagDetailPage = () => {
   const navigate = useNavigate();
   const { flagId } = useParams();
-  const { user } = useAuth();
+  const { user , isloading , accessToken } = useAuth();
 
   const [flags, setFlags] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,31 +19,35 @@ const FlagDetailPage = () => {
     rolloutPercentage: 100,
   });
 
+  // URL ke flagId ke basis pe current selected flag nikaal rahe hain
   const selectedFlag = useMemo(() => {
     return flags.find((flag) => flag._id === flagId) || null;
   }, [flags, flagId]);
 
-  const fetchFlags = async () => {
+  // Initial load pe loader show hoga
+  // later save/toggle pe background refresh ke liye loader skip kar sakte hain
+  const fetchFlags = async (showLoader = true) => {
     try {
-      setLoading(true);
+      if (showLoader) setLoading(true);
       setMessage("");
 
-      // Simpler approach:
-      // list all tenant flags, then find the selected one locally.
-      const res = await api.get("/flags");
+      const res = await api.get("/flagit/flags");
       setFlags(res.data.flags || []);
     } catch (err) {
       console.error("Fetch flags error", err);
       setMessage(err.response?.data?.message || "Failed to load flag");
     } finally {
-      setLoading(false);
+      if (showLoader) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchFlags();
-  }, [flagId]);
+    if (!isloading && accessToken) {
+      fetchFlags(true);
+    }
+  }, [flagId, accessToken, isloading]);
 
+  // Selected flag milne ke baad form values sync kar do
   useEffect(() => {
     if (selectedFlag) {
       setForm({
@@ -59,14 +63,19 @@ const FlagDetailPage = () => {
       setSaving(true);
       setMessage("");
 
-      await api.patch(`/flags/${flagId}`, {
+      const res = await api.patch(`/flagit/flags/${flagId}`, {
         name: form.name,
         description: form.description,
         rolloutPercentage: Number(form.rolloutPercentage),
       });
 
+      // Full refetch ke bajay local state update kar rahe hain
+      // isse page flashing / reload-jaisa effect avoid hota hai
+      setFlags((prev) =>
+        prev.map((item) => (item._id === flagId ? res.data.flag : item))
+      );
+
       setMessage("Flag updated successfully");
-      fetchFlags();
     } catch (err) {
       console.error("Update flag error", err);
       setMessage(err.response?.data?.message || "Failed to update flag");
@@ -78,9 +87,15 @@ const FlagDetailPage = () => {
   const handleToggle = async () => {
     try {
       setMessage("");
-      await api.patch(`/flags/${flagId}/toggle`);
+
+      const res = await api.patch(`/flagit/flags/${flagId}/toggle`);
+
+      // Toggle response se selected flag ko local state me update kar do
+      setFlags((prev) =>
+        prev.map((item) => (item._id === flagId ? res.data.flag : item))
+      );
+
       setMessage("Flag toggled successfully");
-      fetchFlags();
     } catch (err) {
       console.error("Toggle flag error", err);
       setMessage(err.response?.data?.message || "Failed to toggle flag");
@@ -90,7 +105,7 @@ const FlagDetailPage = () => {
   const handleDelete = async () => {
     try {
       setMessage("");
-      await api.delete(`/flags/${flagId}`);
+      await api.delete(`/flagit/flags/${flagId}`);
       navigate("/dashboard");
     } catch (err) {
       console.error("Delete flag error", err);
@@ -98,35 +113,36 @@ const FlagDetailPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <section className="min-h-screen bg-[#05050d] p-6 text-white">
-        <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl">
-          Loading flag details...
-        </div>
-      </section>
-    );
-  }
+  if (isloading || loading) {
+  return (
+    <section className="min-h-screen bg-[#05050d] p-6 text-white">
+      <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl">
+        Loading flag details...
+      </div>
+    </section>
+  );
+}
 
-  if (!selectedFlag) {
-    return (
-      <section className="min-h-screen bg-[#05050d] p-6 text-white">
-        <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl">
-          <h2 className="text-lg font-semibold">Flag not found</h2>
-          <p className="mt-2 text-white/60">
-            Either this flag does not exist or it does not belong to your tenant.
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate("/dashboard")}
-            className="mt-5 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 px-5 py-3 font-semibold text-white"
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </section>
-    );
-  }
+if (!selectedFlag) {
+  return (
+    <section className="min-h-screen bg-[#05050d] p-6 text-white">
+      <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl">
+        <h2 className="text-lg font-semibold">Flag not found</h2>
+        <p className="mt-2 text-white/60">
+          Either this flag does not exist or it does not belong to your tenant.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate("/dashboard")}
+          className="mt-5 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 px-5 py-3 font-semibold text-white"
+        >
+          Back to Dashboard
+        </button>
+      </div>
+    </section>
+  );
+}
+
 
   return (
     <section className="min-h-screen bg-[#05050d] p-4 text-white md:p-7">
