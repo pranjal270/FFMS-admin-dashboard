@@ -10,7 +10,6 @@ import FlagDetailPage from "./pages/FlagDetailPage"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 const App = () => {
-  const { setAccessToken,setIsloading , setUser} = useAuth()
 
   useAxiosInterceptor()
  

@@ -5,12 +5,13 @@ import api from "../api/axios"
 
 const Dashboard = () => {
   const navigate = useNavigate()
-  const { user , logoutUser } = useAuth()
+  const { user , logoutUser, isloading , accessToken } = useAuth()
 
-  const [activePanel, setActivePanel] = useState("overview")
+  const [activePanel, setActivePanel] = useState("flags")
   const [recoveryCodes, setRecoveryCodes] = useState([])
-  const [recoveryError, setRecoveryError] = useState("")
   const [isGeneratingCodes, setIsGeneratingCodes] = useState(false)
+  const [recoveryError, setRecoveryError] = useState("")
+
 
   const [flags, setFlags]  = useState([])
   const [flagsLoading, setFlagsLoading] = useState(false)
@@ -20,10 +21,10 @@ const Dashboard = () => {
   const [createLoading, setCreateLoading] = useState(false)
 
   const [createForm, setCreateForm] = useState({
-    flagkey : "",
+    flagKey : "",
     name : "",
     description:"",
-    rolloutPercentage : 100
+    rolloutPercentage : ""
   })
 
   const handleLogout = async () => {
@@ -42,7 +43,8 @@ const Dashboard = () => {
       setFlagsLoading(true)
       setFlagsError("")
 
-      const res = await api.get('/flags')
+      const res = await api.get('/flagit/flags')
+      console.log(res)
       setFlags(res.data.flags || [])
 
     } catch (error) {
@@ -52,12 +54,15 @@ const Dashboard = () => {
       setFlagsLoading(false)
     }
   }   
+  
+
 
   useEffect(() => {
-    if ( activePanel === 'flags') {
-      fetchFlags()
-    }
-  }, [activePanel])
+    fetchFlags();
+    // if (!isloading && accessToken && activePanel === "flags") {
+    //   fetchFlags();
+    // }
+  }, [activePanel, accessToken, isloading]);
   
   
 
@@ -80,18 +85,20 @@ const Dashboard = () => {
       setCreateLoading(true)
       setFlagsError("")
 
-      const res =  await api.post("/flags", {
-        flagkey: createForm.flagkey,
+      const res =  await api.post("/flagit/flags/create", {
+        flagKey: createForm.flagKey,
         name: createForm.name,
         description: createForm.description,
         rolloutPercentage: Number(createForm.rolloutPercentage)
+
       })
+
 
       setCreateForm({
         flagKey: "",
         name: "",
         description: "",
-        rolloutPercentage: 100,
+        rolloutPercentage: "",
       });
 
       setShowCreateCard(false);
@@ -126,38 +133,33 @@ return (
         <nav className="grid gap-2">
           <button
             type="button"
-            onClick={() => setActivePanel("overview")}
-            className={`rounded-2xl px-4 py-3 text-left transition ${
-              activePanel === "overview"
-                ? "border border-violet-500/35 bg-violet-500/20 text-white"
-                : "text-white/60 hover:bg-white/5 hover:text-white"
-            }`}
-          >
-            Overview
-          </button>
-
-          <button
-            type="button"
             onClick={() => setActivePanel("flags")}
             className={`rounded-2xl px-4 py-3 text-left transition ${
-              activePanel === "flags"
-                ? "border border-violet-500/35 bg-violet-500/20 text-white"
-                : "text-white/60 hover:bg-white/5 hover:text-white"
-            }`}
+              activePanel === "flags"? "border border-violet-500/35 bg-violet-500/20 text-white"
+                : "text-white/60 hover:bg-white/5 hover:text-white"}`}
           >
-            Tenant Flags
+            Feature Flags
           </button>
 
           <button
             type="button"
             onClick={() => setActivePanel("recovery")}
-            className={`rounded-2xl px-4 py-3 text-left transition ${
-              activePanel === "recovery"
+            className={`rounded-2xl px-4 py-3 text-left transition ${activePanel === "recovery"
                 ? "border border-violet-500/35 bg-violet-500/20 text-white"
                 : "text-white/60 hover:bg-white/5 hover:text-white"
             }`}
           >
             Recovery Codes
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActivePanel("overview")}
+            className={`rounded-2xl px-4 py-3 text-left transition 
+              ${activePanel === "overview"? "border border-violet-500/35 bg-violet-500/20 text-white"
+                : "text-white/60 hover:bg-white/5 hover:text-white"}`}
+          >
+            Overview
           </button>
         </nav>
 
@@ -190,7 +192,7 @@ return (
                 Workspace: {user?.tenantId}
               </h1>
               <p className="mt-2 text-white/60">
-                Feature flags active for this tenant only
+                All feature flags of {user?.tenantId}
               </p>
             </div>
 
@@ -213,10 +215,10 @@ return (
                 Session
               </p>
               <h2 className="mt-2 text-xl font-bold tracking-[-0.03em]">
-                You are managing tenant: {user?.tenantId}
+                You are managing project: {user?.tenantId}
               </h2>
               <p className="mt-2 text-white/60">
-                All dashboard operations are automatically scoped to this tenant.
+                All dashboard operations are automatically scoped to {user?.tenantId}.
               </p>
             </article>
 
@@ -231,14 +233,14 @@ return (
                 <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
                   <strong className="text-base">1. Login</strong>
                   <span className="mt-1 block text-sm text-white/55">
-                    Admin logs in and receives tenant-aware JWT.
+                    Admin logs in and can handle {user?.tenantId} feature flags.
                   </span>
                 </div>
 
                 <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
                   <strong className="text-base">2. Manage Flags</strong>
                   <span className="mt-1 block text-sm text-white/55">
-                    Only this tenant's flags are listed here.
+                    Only {user?.tenantId} flags are listed here.
                   </span>
                 </div>
 
@@ -363,19 +365,20 @@ return (
                   </span>
                 </button>
 
-                <div className="ml-4 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={async (e) => {
-                      e.stopPropagation();
+                <button
+                  type="button"
+                  onClick={async (e) => {
+                    e.stopPropagation();
 
-                      try {
-                        await api.patch(`/flags/${flag._id}/toggle`);
-                        fetchFlags();
-                      } catch (err) {
-                        setFlagsError(
-                          err.response?.data?.message || "Failed to toggle flag"
+                    try {
+                        setFlagsError("");
+                        const res = await api.patch(`/flagit/flags/${flag._id}/toggle`);
+
+                        setFlags((prev) =>
+                          prev.map((item) => (item._id === flag._id ? res.data.flag : item))
                         );
+                      } catch (err) {
+                        setFlagsError(err.response?.data?.message || "Failed to toggle flag");
                       }
                     }}
                     className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
@@ -387,6 +390,7 @@ return (
                     {flag.isEnabled ? "ON" : "OFF"}
                   </button>
 
+
                   <button
                     type="button"
                     onClick={() => navigate(`/dashboard/flags/${flag._id}`)}
@@ -395,7 +399,7 @@ return (
                     Open
                   </button>
                 </div>
-              </div>
+
               ))}
             </div>
 

@@ -2,9 +2,9 @@ import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom"
 
 const ProtectedRoute = ({children}) => {
-    const {accessToken, isLoading } = useAuth()
+    const {accessToken, isloading } = useAuth()
 
-    if (isLoading) {
+    if (isloading) {
         return <div>Loading ....</div>
     }
     
