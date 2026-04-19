@@ -43,7 +43,12 @@ const Dashboard = () => {
       setFlagsLoading(true)
       setFlagsError("")
 
-      const res = await api.get('/flagit/flags')
+      const res = await api.get('/flagit/flags', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      })
+
       console.log(res)
       setFlags(res.data.flags || [])
 
@@ -58,14 +63,13 @@ const Dashboard = () => {
 
 
   useEffect(() => {
-    fetchFlags();
-    // if (!isloading && accessToken && activePanel === "flags") {
-    //   fetchFlags();
-    // }
+    if (isloading) return
+    if (!accessToken) return 
+    if (activePanel !== "flags") return
+
+    fetchFlags()
   }, [activePanel, accessToken, isloading]);
   
-  
-
   const handleGenerateCodes = async () => {
     setIsGeneratingCodes(true)
     setRecoveryError("")
@@ -92,7 +96,6 @@ const Dashboard = () => {
         rolloutPercentage: Number(createForm.rolloutPercentage)
 
       })
-
 
       setCreateForm({
         flagKey: "",
@@ -151,16 +154,6 @@ return (
           >
             Recovery Codes
           </button>
-
-          <button
-            type="button"
-            onClick={() => setActivePanel("overview")}
-            className={`rounded-2xl px-4 py-3 text-left transition 
-              ${activePanel === "overview"? "border border-violet-500/35 bg-violet-500/20 text-white"
-                : "text-white/60 hover:bg-white/5 hover:text-white"}`}
-          >
-            Overview
-          </button>
         </nav>
 
         <div className="mt-auto grid gap-4 pt-8">
@@ -202,58 +195,12 @@ return (
                 onClick={() => setShowCreateCard((prev) => !prev)}
                 className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 px-5 py-3 font-semibold text-white shadow-[0_0_28px_rgba(124,58,237,0.38)] transition hover:-translate-y-0.5"
               >
+
                 {showCreateCard ? "Close" : "Add Flag"}
               </button>
             )}
           </div>
         </header>
-
-        {activePanel === "overview" && (
-          <section className="mt-5 grid gap-4">
-            <article className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl">
-              <p className="text-xs uppercase tracking-[0.18em] text-violet-200/85">
-                Session
-              </p>
-              <h2 className="mt-2 text-xl font-bold tracking-[-0.03em]">
-                You are managing project: {user?.tenantId}
-              </h2>
-              <p className="mt-2 text-white/60">
-                All dashboard operations are automatically scoped to {user?.tenantId}.
-              </p>
-            </article>
-
-            <article className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl">
-              <p className="text-xs uppercase tracking-[0.18em] text-violet-200/85">
-                Flow
-              </p>
-              <h3 className="mt-2 text-lg font-semibold tracking-[-0.03em]">
-                How this dashboard works
-              </h3>
-              <div className="mt-5 grid gap-4 md:grid-cols-3">
-                <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
-                  <strong className="text-base">1. Login</strong>
-                  <span className="mt-1 block text-sm text-white/55">
-                    Admin logs in and can handle {user?.tenantId} feature flags.
-                  </span>
-                </div>
-
-                <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
-                  <strong className="text-base">2. Manage Flags</strong>
-                  <span className="mt-1 block text-sm text-white/55">
-                    Only {user?.tenantId} flags are listed here.
-                  </span>
-                </div>
-
-                <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
-                  <strong className="text-base">3. Open Detail</strong>
-                  <span className="mt-1 block text-sm text-white/55">
-                    Click any flag to open dedicated edit page.
-                  </span>
-                </div>
-              </div>
-            </article>
-          </section>
-        )}
 
         {activePanel === "flags" && (
           <section className="mt-5 rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl">
