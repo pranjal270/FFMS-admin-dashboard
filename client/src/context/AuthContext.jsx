@@ -12,7 +12,7 @@ export const AuthProvider = ({children}) => {
     const initAuth = async () => {
       try {
         const res = await api.post("/auth/refresh")
-        const newAccessToken = res.data.accessToken
+        const newAccessToken = res.data.accessToken //isko res m kyu bheja
         setAccessToken(newAccessToken)
         setUser(res.data.user) 
         setIsloading(false)

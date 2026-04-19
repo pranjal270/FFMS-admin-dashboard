@@ -16,7 +16,7 @@ const FlagDetailPage = () => {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    rolloutPercentage: 100,
+    rolloutPercentage: "",
   });
 
   // URL ke flagId ke basis pe current selected flag nikaal rahe hain
@@ -28,10 +28,14 @@ const FlagDetailPage = () => {
   // later save/toggle pe background refresh ke liye loader skip kar sakte hain
   const fetchFlags = async (showLoader = true) => {
     try {
-      if (showLoader) setLoading(true);
+      if (showLoader) setLoading(true); //initial load pe hi loading screen dikhao
       setMessage("");
 
-      const res = await api.get("/flagit/flags");
+      const res = await api.get("/flagit/flags", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
       setFlags(res.data.flags || []);
     } catch (err) {
       console.error("Fetch flags error", err);
@@ -71,8 +75,8 @@ const FlagDetailPage = () => {
 
       // Full refetch ke bajay local state update kar rahe hain
       // isse page flashing / reload-jaisa effect avoid hota hai
-      setFlags((prev) =>
-        prev.map((item) => (item._id === flagId ? res.data.flag : item))
+      setFlags((prev) =>   
+        prev.map((item) => (item._id === flagId ? res.data.flag : item)) //be sends the updated flag
       );
 
       setMessage("Flag updated successfully");
