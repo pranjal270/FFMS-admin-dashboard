@@ -73,7 +73,7 @@ export const createFlag = async ( req, res) => {
 
 export const updateFlag = async ( req , res) => {
     try {
-        const { flagId } = req.params
+        const { flagId } = req.params 
         const { name , description, rolloutPercentage} = req.body
 
         const flag = await FeatureFlag.findOne({
@@ -97,8 +97,8 @@ export const updateFlag = async ( req , res) => {
         }
 
         if ( typeof rolloutPercentage !== "undefined" ) {
-            flag.rolloutPercentage = Number(rolloutPercentage)
-        }
+            flag.rolloutPercentage = Number(rolloutPercentage)  //jb bhi input lete hai vo string mai aata h
+        } 
 
         await flag.save()
 
