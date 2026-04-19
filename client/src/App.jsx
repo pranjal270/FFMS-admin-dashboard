@@ -1,6 +1,6 @@
 import api from "./api/axios"
 import {useAuth }from "./context/AuthContext"
-import useAxiosInterceptor from "../hooks/useAxiosInterceptor"
+import useAxiosInterceptor from "./hooks/useAxiosInterceptor"
 import React, { useEffect } from 'react'
 import { Route, Routes } from "react-router-dom"
 import Login from "./pages/Login"
