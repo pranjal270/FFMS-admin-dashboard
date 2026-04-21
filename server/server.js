@@ -17,7 +17,7 @@ const app = express()
 app.use(cookieParser());
 
 app.use(cors({
-    origin:["http://localhost:5173", "http://localhost:5174"],
+    origin:["https://ffms-admin-dashboard.vercel.app", "http://localhost:5173", "http://localhost:5174"],
     credentials: true
 }))
 
@@ -31,6 +31,9 @@ app.get("/check", (req, res) => {
   res.send("FFMS RUNNING ✅");
 });
 
+app.get("/", (req, res) => {
+  res.send("Backend is running successfully");
+});
 
 connectDB()
 
