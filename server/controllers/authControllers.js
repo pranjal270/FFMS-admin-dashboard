@@ -45,9 +45,10 @@ export const login = async (req,res) => {
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly : true,  //js se directly access nahi ho paega
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            expires: expiresAt
+            secure: true,
+            sameSite: "none",
+            expires: expiresAt,
+            path: "/"
         })
 
         return res.json({
