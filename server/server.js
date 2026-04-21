@@ -18,7 +18,9 @@ app.use(cookieParser());
 
 app.use(cors({
     origin:["https://ffms-admin-dashboard.vercel.app", "http://localhost:5173", "http://localhost:5174"],
-    credentials: true
+    credentials: true,
+    methods:["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
+    allowedHeaders:["Content-Type","Authorization"]
 }))
 
 app.use(express.json())
