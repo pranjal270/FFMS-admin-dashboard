@@ -17,7 +17,7 @@ const app = express()
 app.use(cookieParser());
 
 app.use(cors({
-    origin:["https://ffms-admin-dashboard.vercel.app", "http://localhost:5173", "http://localhost:5174"],
+    origin:["https://ffms-admin-dashboard.vercel.app", "http://localhost:5173", "http://localhost:5174","https://food-black-sigma.vercel.app/" ],
     credentials: true,
     methods:["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
     allowedHeaders:["Content-Type","Authorization"]
@@ -28,7 +28,8 @@ app.use(express.json())
 app.use('/api/auth', authRoutes)
 app.use("/api/flagit/flags", flagRoutes) //admin
 app.use('/health', healthRoutes)
-app.use("/api/flags", tenantFlagRoutes) //tenant
+
+app.use("/api/flags",tenantAuth, tenantFlagRoutes) //tenant routes
 app.get("/check", (req, res) => {
   res.send("FFMS RUNNING ✅");
 });
@@ -41,5 +42,4 @@ connectDB()
 
 app.listen(config.port, ()=>{
     console.log(`Server running on port ${config.port}`)
-
 })
