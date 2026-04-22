@@ -18,7 +18,7 @@ export const tenantAuth = async (req, res, next)=> {
             });
         }
 
-        req.tenant({
+        req.tenant({  //modified the request object
             tenantId : tenant.tenantId,
             name: tenant.name
         })
