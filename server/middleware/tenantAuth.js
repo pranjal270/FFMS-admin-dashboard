@@ -2,7 +2,7 @@ import Tenant from "../models/Tenant.js";
 
 export const tenantAuth = async (req, res, next)=> {
     try {
-        const clientKey = req.headers("x-client-key")
+        const clientKey = req.headers["x-client-key"];
 
         if (!clientKey) {
             return res.status(401).json({
@@ -18,13 +18,13 @@ export const tenantAuth = async (req, res, next)=> {
             });
         }
 
-        req.tenant({  //modified the request object
+        req.tenant = {  //modified the request object
             tenantId : tenant.tenantId,
             name: tenant.name
-        })
+        };
         next()
     } catch (err) {
-        console.error("Tenant auth error:", error.message);
+        console.error("Tenant auth error:", err.message);
 
         return res.status(500).json({
         message: "Server error during tenant authentication",
