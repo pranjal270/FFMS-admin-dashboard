@@ -3,9 +3,7 @@ import FeatureFlag from "../models/FeatureFlag.js"
 export const getTenantFlags = async (req, res) => {
   try {
     // const tenantId = req.user?.tenantId;   // ✅ FIX
-   console.log("🔥 CONTROLLER HIT 🔥");
    const tenantId = req.tenant?.tenantId;
-    console.log("TENANT ID:", tenantId);
 
     if (!tenantId) {
       return res.status(400).json({ message: "Tenant ID missing" });
