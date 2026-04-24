@@ -2,6 +2,7 @@ import React, { useState , useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import api from "../api/axios"
+import Sidebar from "../components/Sidebar"
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -122,65 +123,7 @@ const Dashboard = () => {
 
 return (
     <section className="min-h-screen bg-[#05050d] text-white lg:grid lg:grid-cols-[260px_1fr] lg:h-screen lg:overflow-hidden">
-      <aside className="flex flex-col border-b border-white/10 bg-white/5 p-4 backdrop-blur-2xl lg:h-screen lg:overflow-y-auto lg:border-b-0 lg:border-r">
-        <div className="mb-8 flex items-center gap-3.5">
-          <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 font-extrabold shadow-[0_0_28px_rgba(124,58,237,0.38)]">
-            F
-          </div>
-          <div>
-            <strong className="block text-base tracking-[-0.02em]">FlagIt</strong>
-            <span className="block text-xs text-white/55">Admin Console</span>
-          </div>
-        </div>
-
-        <nav className="grid gap-2">
-          <button
-            type="button"
-            onClick={() => setActivePanel("flags")}
-            className={`rounded-2xl px-4 py-3 text-left transition ${
-              activePanel === "flags"? "border border-violet-500/35 bg-violet-500/20 text-white"
-                : "text-white/60 hover:bg-white/5 hover:text-white"}`}
-          >
-            Feature Flags
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActivePanel("recovery")}
-            className={`rounded-2xl px-4 py-3 text-left transition ${activePanel === "recovery"
-                ? "border border-violet-500/35 bg-violet-500/20 text-white"
-                : "text-white/60 hover:bg-white/5 hover:text-white"
-            }`}
-          >
-            Recovery Codes
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate("/guide")}
-            className="rounded-2xl px-4 py-3 text-left transition text-white/60 hover:bg-white/5 hover:text-white"
-          >
-            How to Use
-          </button>
-        </nav>
-
-        <div className="mt-auto grid gap-4 pt-8">
-          <div className="rounded-2xl bg-white/5 p-4">
-            <strong>{user?.email}</strong>
-            <span className="mt-1 block text-xs text-white/55">
-              Tenant: {user?.tenantId}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="rounded-2xl bg-red-500/10 px-4 py-3 text-left text-red-300 transition hover:-translate-y-0.5"
-          >
-            Logout
-          </button>
-        </div>
-      </aside>
+      <Sidebar activePanel={activePanel} setActivePanel={setActivePanel} />
 
       <main className="p-4 md:p-7 lg:h-screen lg:overflow-y-auto">
         <header className="rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur-2xl">
