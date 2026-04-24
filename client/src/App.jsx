@@ -8,6 +8,7 @@ import Home from "./pages/Home"
 import Dashboard from "./pages/Dashboard"
 import FlagDetailPage from "./pages/FlagDetailPage"
 import ProtectedRoute from "./components/ProtectedRoute"
+import GuidePage from "./pages/GuidePage"
 
 const App = () => {
 
@@ -30,6 +31,15 @@ const App = () => {
         element={
           <ProtectedRoute>
             <FlagDetailPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/guide"
+        element={
+          <ProtectedRoute>
+            <GuidePage />
           </ProtectedRoute>
         }
       />

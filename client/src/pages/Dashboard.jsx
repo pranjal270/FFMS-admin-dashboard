@@ -121,8 +121,8 @@ const Dashboard = () => {
 
 
 return (
-    <section className="min-h-screen bg-[#05050d] text-white lg:grid lg:grid-cols-[260px_1fr]">
-      <aside className="flex flex-col border-b border-white/10 bg-white/5 p-4 backdrop-blur-2xl lg:min-h-screen lg:border-b-0 lg:border-r">
+    <section className="min-h-screen bg-[#05050d] text-white lg:grid lg:grid-cols-[260px_1fr] lg:h-screen lg:overflow-hidden">
+      <aside className="flex flex-col border-b border-white/10 bg-white/5 p-4 backdrop-blur-2xl lg:h-screen lg:overflow-y-auto lg:border-b-0 lg:border-r">
         <div className="mb-8 flex items-center gap-3.5">
           <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 font-extrabold shadow-[0_0_28px_rgba(124,58,237,0.38)]">
             F
@@ -154,6 +154,14 @@ return (
           >
             Recovery Codes
           </button>
+
+          <button
+            type="button"
+            onClick={() => navigate("/guide")}
+            className="rounded-2xl px-4 py-3 text-left transition text-white/60 hover:bg-white/5 hover:text-white"
+          >
+            How to Use
+          </button>
         </nav>
 
         <div className="mt-auto grid gap-4 pt-8">
@@ -174,7 +182,7 @@ return (
         </div>
       </aside>
 
-      <main className="p-4 md:p-7">
+      <main className="p-4 md:p-7 lg:h-screen lg:overflow-y-auto">
         <header className="rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur-2xl">
           <div className="flex items-center justify-between gap-4">
             <div>
